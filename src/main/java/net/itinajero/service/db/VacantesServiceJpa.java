@@ -22,18 +22,20 @@ public class VacantesServiceJpa implements IVacantesService {
 		return vacantesRepo.findAll();
 	}
 
-	@Override
 	public Vacante buscarPorId(Integer idVacante) {
 		Optional<Vacante> optional = vacantesRepo.findById(idVacante);
 		if(optional.isPresent()) {
-			optional.get(); 
+		   return optional.get(); 
 		}
 		return null;
 	}
 
-	@Override
 	public void guardar(Vacante vacante) {
 		vacantesRepo.save(vacante);
+	}
+
+	public List<Vacante> buscarDestacada() {
+		return vacantesRepo.findByDestacadoAndEstatusOrderByIdDesc(1, "Aprobada");
 	}
 
 }
