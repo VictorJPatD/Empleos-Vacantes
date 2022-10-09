@@ -3,27 +3,36 @@ package net.itinajero.controller;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import net.itinajero.model.Perfil;
+import net.itinajero.model.Usuario;
 import net.itinajero.model.Vacante;
+import net.itinajero.service.ICategoriasService;
+import net.itinajero.service.IUsuariosService;
 import net.itinajero.service.IVacantesService;
 
 @Controller
 public class HomeController {
 	
+	@Autowired 
+	private ICategoriasService serviceCategorias;
+	
 	@Autowired
 	private IVacantesService serviceVacantes;
+	
+	@Autowired
+   	private IUsuariosService serviceUsuarios;
 	
 	@GetMapping("/tabla")
 	public String mostrarTabla(Model model) {
 		List<Vacante> lista = serviceVacantes.buscarTodas();
 		model.addAttribute("vacantes", lista);
-		
 		return "tabla";
 	}
 	
@@ -50,15 +59,50 @@ public class HomeController {
 		
 		return "listado";
 	}
-
+	
 	@GetMapping("/")
 	public String mostrarHome(Model model) {	
 		return "home";
 	}
 	
+	@GetMapping("/signup")
+	public String registrarse(Usuario usuario) {
+		return "usuarios/formRegistro";
+	}
+	
+	@PostMapping("/signup")
+	public String guardarRegistro(Usuario usuario, RedirectAttributes attributes) {
+		//Ejercicio.
+		usuario.setEstatus(1);// Activado por defecto
+		 usuario.setFechaRegistro(new Date());//Fecha de registro, la fecha actual del servidor
+		 
+		 // Creamos el Perfil que le asignaremos al usuario nuevo
+		 Perfil perfil = new Perfil();
+		 perfil.setId(3);//Perfil USUARIO
+		 usuario.agregar(perfil);
+		 
+		 /**
+		  * Guardamos el usuario en la base de datos. El perfil se guarda automaticamente
+		  */
+		serviceUsuarios.guardar(usuario);
+		attributes.addFlashAttribute("msg", "Usuario registrado exitosamente");		
+		
+		return "redirect:/usuarios/index";	
+	}
+	
+	@GetMapping("/search")
+	public String buscar(@ModelAttribute("search") Vacante vacante) {
+		System.out.println("Buscando por:" + vacante);
+		return "home";
+	}
+
+	
 	@ModelAttribute
 	public void setGenericos(Model model) {
+		Vacante vacanteSearch = new Vacante();
+		vacanteSearch.reset();
 		model.addAttribute("vacantes", serviceVacantes.buscarDestacada());
-
+		model.addAttribute("categorias", serviceCategorias.buscarTodas());
+		model.addAttribute("search", vacanteSearch);
 	}
 }

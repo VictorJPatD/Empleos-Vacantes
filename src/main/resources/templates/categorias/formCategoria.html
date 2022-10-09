@@ -13,6 +13,7 @@
     <!-- Custom styles for this template -->
     <link th:href="@{/bootstrap/css/jumbotron.css}" rel="stylesheet">
     <link th:href="@{/bootstrap/css/sticky-footer-navbar.css}" rel="stylesheet">
+    <link href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet" >
   </head>
 
   <body>
@@ -37,7 +38,8 @@
                 <div class="col-md-6"> 
                   <div class="form-group">
                     <label for="nombre">Nombre</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" placeholder="Escriba el nombre de la categoria" required="required">
+                    <input type="hidden" th:field="*{id}"><!-- Contenemos el valor del id -->
+                    <input type="text" class="form-control" th:field="*{nombre}" id="nombre" name="nombre" placeholder="Escriba el nombre de la categoria" required="required">
                   </div>
                 </div>                
               </div> 
@@ -45,7 +47,9 @@
                 <div class="col-md-6"> 
                   <div class="form-group">
                     <label for="descripcion">Descripción</label>
-                    <textarea class="form-control" name="descripcion" id="descripcion" rows="2"></textarea>
+                    <!--  <textarea class="form-control" name="descripcion" id="descripcion" rows="2"></textarea>-->
+                    <input type="text" class="form-control" th:field="*{descripcion}" id="descripcion" name="descripcion" placeholder="Breve descripcion de la Categoría" required="required">
+              
                   </div> 
                 </div>                
               </div> 

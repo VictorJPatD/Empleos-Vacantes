@@ -2,24 +2,23 @@ package net.itinajero.service.db;
 
 import java.util.List;
 import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 //import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
+
 import net.itinajero.model.Categoria;
 import net.itinajero.repository.CategoriasRepository;
 import net.itinajero.service.ICategoriasService;
 
 @Service
-//@Primary
+@Primary
 public class CategoriasServiceJpa implements ICategoriasService {
 
 	@Autowired
 	private CategoriasRepository categoriasRepo;
 	
-	public void guardar(Categoria categoria) {
-		categoriasRepo.save(categoria);	
-	}
-
 	public List<Categoria> buscarTodas() {
 		return categoriasRepo.findAll();
 	}
@@ -30,6 +29,15 @@ public class CategoriasServiceJpa implements ICategoriasService {
 			return optional.get();
 		}
 		return null;
+	}
+	
+	public void guardar(Categoria categoria) {
+		categoriasRepo.save(categoria);	
+	}
+
+	@Override
+	public void eliminar(Integer idCategoria) {
+		categoriasRepo.deleteById(idCategoria);	
 	}
 
 }
