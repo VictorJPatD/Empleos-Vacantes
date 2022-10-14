@@ -12,13 +12,16 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import net.itinajero.model.Perfil;
@@ -39,6 +42,9 @@ public class HomeController {
 	
 	@Autowired
    	private IUsuariosService serviceUsuarios;
+	
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 	
 	@GetMapping("/")
 	public String mostrarHome(Model model) {	
@@ -63,6 +69,32 @@ public class HomeController {
 		return "redirect:/";
 	}
 	
+	@GetMapping("/signup")
+	public String registrarse(Usuario usuario) {
+		return "usuarios/formRegistro";
+	}
+	
+	@PostMapping("/signup")
+	public String guardarRegistro(Usuario usuario, RedirectAttributes attributes) {
+		
+		String pwdPlano = usuario.getPassword();
+		String pwdEncriptado = passwordEncoder.encode(pwdPlano);
+		usuario.setPassword(pwdEncriptado);
+		usuario.setEstatus(1);// Activado por defecto
+		 usuario.setFechaRegistro(new Date());//Fecha de registro, la fecha actual del servidor
+		 // Creamos el Perfil que le asignaremos al usuario nuevo
+		 Perfil perfil = new Perfil();
+		 perfil.setId(3);//Perfil USUARIO
+		 usuario.agregar(perfil);
+		 /**
+		  * Guardamos el usuario en la base de datos. El perfil se guarda automaticamente
+		  */
+		serviceUsuarios.guardar(usuario);
+		attributes.addFlashAttribute("msg", "Usuario registrado exitosamente");		
+		
+		return "redirect:/usuarios/index";	
+	}
+	
 	@GetMapping("/tabla")
 	public String mostrarTabla(Model model) {
 		List<Vacante> lista = serviceVacantes.buscarTodas();
@@ -81,6 +113,20 @@ public class HomeController {
 		return "detalle";
 	}
 	
+	@GetMapping("/search")
+	public String buscar(@ModelAttribute("search") Vacante vacante, Model model) {
+		System.out.println("Buscando por :" + vacante);
+		
+		ExampleMatcher matcher = ExampleMatcher.
+				// where descripcion like '%?%'
+				matching().withMatcher("descripcion", ExampleMatcher.GenericPropertyMatchers.contains());
+		
+		Example<Vacante> example = Example.of(vacante, matcher);
+		List<Vacante> lista = serviceVacantes.buscarByExample(example);
+		model.addAttribute("vacantes",lista);
+		return "home";
+	}
+	
 	@GetMapping("/listado")
 	public String mostrarListado(Model model) {
 		List<String> lista = new LinkedList<String>();
@@ -94,43 +140,10 @@ public class HomeController {
 		return "listado";
 	}
 	
-	@GetMapping("/signup")
-	public String registrarse(Usuario usuario) {
-		return "usuarios/formRegistro";
-	}
-	
-	@PostMapping("/signup")
-	public String guardarRegistro(Usuario usuario, RedirectAttributes attributes) {
-		//Ejercicio.
-		usuario.setEstatus(1);// Activado por defecto
-		 usuario.setFechaRegistro(new Date());//Fecha de registro, la fecha actual del servidor
-		 
-		 // Creamos el Perfil que le asignaremos al usuario nuevo
-		 Perfil perfil = new Perfil();
-		 perfil.setId(3);//Perfil USUARIO
-		 usuario.agregar(perfil);
-		 
-		 /**
-		  * Guardamos el usuario en la base de datos. El perfil se guarda automaticamente
-		  */
-		serviceUsuarios.guardar(usuario);
-		attributes.addFlashAttribute("msg", "Usuario registrado exitosamente");		
-		
-		return "redirect:/usuarios/index";	
-	}
-	
-	@GetMapping("/search")
-	public String buscar(@ModelAttribute("search") Vacante vacante, Model model) {
-		System.out.println("Buscando por :" + vacante);
-		
-		ExampleMatcher matcher = ExampleMatcher.
-				// where descripcion like '%?%'
-				matching().withMatcher("descripcion", ExampleMatcher.GenericPropertyMatchers.contains());
-		
-		Example<Vacante> example = Example.of(vacante, matcher);
-		List<Vacante> lista = serviceVacantes.buscarByExample(example);
-		model.addAttribute("vacantes",lista);
-		return "home";
+	@GetMapping("/bcrypt/{texto}")
+	@ResponseBody
+	public String encriptar(@PathVariable("texto") String texto) {
+		return texto + " Encriptado en Bcrypt: " + passwordEncoder.encode(texto);
 	}
 
 	/**

@@ -3,11 +3,14 @@ package net.itinajero.security;
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableWebSecurity
@@ -36,10 +39,12 @@ public class DatabaseWebSecurity extends WebSecurityConfigurerAdapter {
 			"/images/**",
 			"/tinymce/**",
 			"/logos/**").permitAll()
+		
 		// Las vistas públicas no requieren autenticación
 		.antMatchers("/", 
 			"/signup",
 			"/search",
+			"/bcrypt/**",//** Tds los archvs de ese nvl y tmbn tds los dirctorios y su contndo
 			"/vacantes/view/**").permitAll()
 		
 		// Asignar permisos a URLs por ROLES
@@ -52,4 +57,10 @@ public class DatabaseWebSecurity extends WebSecurityConfigurerAdapter {
 		// El formulario de Login no requiere autenticacion
 		.and().formLogin().permitAll();
 	}
+	
+	@Bean
+	public PasswordEncoder passwordEncoder() { 
+	return new BCryptPasswordEncoder();
+	}
+
 }
